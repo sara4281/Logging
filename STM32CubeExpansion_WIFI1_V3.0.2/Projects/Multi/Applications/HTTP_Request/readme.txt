@@ -2,8 +2,7 @@
   @page Wi-Fi Expansion Board for STM32 Nucleo Boards HTTP-Request Application
   
   @verbatim
-  ******************** (C) COPYRIGHT 2015 STMicroelectronics *******************
-  * @file    readme.txt  
+  ****
   * @version V0.0.3
   * @date    10-03-2017
   * @brief   This application contains an example which shows how to use the 
