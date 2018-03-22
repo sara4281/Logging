@@ -1,2 +1,2 @@
-This is the code for CAN bus,WIFI and MQTT protocol. You have seen this code before when you enabled the interrupt for CAN receive.
+for CAN bus,WIFI and MQTT protocol. You have seen this code before when you enabled the interrupt for CAN receive.
 \STM32CubeExpansion_WIFI1_V3.0.2\Projects\Multi\Applications\HTTP_Request\SW4STM32\STM32L476RG-Nucleo\STM32L4xx-Nucleo-HTTP_Request
