@@ -68,7 +68,8 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-
+#define max_limit 55000U
+#define min_limit 10000U
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -160,10 +161,18 @@ typedef enum {
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void moving_avg_wrapper(int* rawdataptr, int* filterdataptr, int count);
-int movingAvg(int* ptrArrNumbers, long* ptrSum, int pos, int len, int nextNum);
+int movingAvg(int* ptrArrNumbers, long* ptrSum, int pos, int len, int nextNum); //moving average FIR Filter
+int maxima(int* rawdataptr, int count);													//returning maximum value of captured data
+int minima(int* rawdataptr, int count);													//returning minimum value of captured data
+int avg(int* rawdataptr, int count);													//returning average of captured data
+char exception_detection(int* rawdataptr, int count);									//return 1 if exception found
 extern int databuf[20];	//data buffer to hold ECU CAN data
 extern int filtered[20];			//run time index p
 extern char flag;
+extern char exception_flag;
+extern int maximum;		//max value of data chunk
+extern int minimum; 	//min value of data chunk
+extern int averagee;
 
 #endif /* __MAIN_H */
 

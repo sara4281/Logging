@@ -48,6 +48,8 @@
   * @{
   */
 #define WINDOW_LEN	5
+#define max_limit 55000U
+#define min_limit 10000U
 /** @defgroup WIFI_Example_HTTP_Request
   * @{
   */
@@ -63,7 +65,11 @@ uint8_t user_buffer[513];
 int databuf[20];	//data buffer to hold ECU CAN data
 int filtered[20];  //filtered data
 char indexptr = 0;			//run time index pointer
-char flag = 0;	//collection complete flag;
+char flag = 0;		//collection complete flag;
+int maximum = 0;	//max value of data set
+int minimum = 0; 	//min value of data set
+int averagee = 0;	//average value of data set
+char exception_flag = 0; //set means there is exception in data set
 __IO char http_char;
 wifi_bool mqtt_publish_request = WIFI_TRUE;
 
@@ -299,6 +305,52 @@ CAN_Config();
     }
   }
 }
+ /*--------------------------------------------- Data filters---------------------------------------------*/
+ int maxima(int* rawdataptr, int count){			//returning maximum value of captured data
+ int lvalue = 0;
+ char i = 0;
+ for(i=0; i<count; i++)
+ {
+  if(lvalue < *rawdataptr)  lvalue = *rawdataptr;
+  rawdataptr++;
+ }
+ return lvalue;
+ }
+
+ int avg(int* rawdataptr, int count){			//returning maximum value of captured data
+  int lvalue = 0;
+  long sum = 0;
+  char i = 0;
+  for(i=0; i<count; i++)
+  {
+   sum += *rawdataptr;
+   rawdataptr++;
+  }
+  lvalue = (int)(sum/count);
+  return lvalue;
+  }
+
+ int minima(int* rawdataptr, int count){			//returning minimum value of captured data
+  int lvalue = 0xFFFF;
+  char i = 0;
+  for(i=0; i<count; i++)
+  {
+   if(lvalue > *rawdataptr)  lvalue = *rawdataptr;
+   rawdataptr++;
+  }
+  return lvalue;
+  }
+ /*------------------------------------------------------------Exception_detection-----------------------------*/
+ char exception_detection(int* rawdataptr, int count){			//returning minimum value of captured data
+
+   char i = 0;
+   for(i=0; i<count; i++)
+   {
+    if((*rawdataptr > max_limit) || (*rawdataptr < min_limit)) return 1;
+    rawdataptr++;
+   }
+   return 0;
+   }
 /**
   * @brief  System Clock Configuration
   *         The system Clock is configured as follow : 

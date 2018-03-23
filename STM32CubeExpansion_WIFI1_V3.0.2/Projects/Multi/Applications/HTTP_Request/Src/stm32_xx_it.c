@@ -206,6 +206,10 @@ void SysTick_Handler(void)
 {
   HAL_IncTick();
   if(flag==1){
+	    maximum = maxima(databuf,20);
+	    averagee = avg(databuf,20);
+	    minimum = minima(databuf,20);
+	    exception_flag = exception_detection(databuf,20);
       	moving_avg_wrapper(databuf,filtered, 20);
       	flag = 0;
       }
