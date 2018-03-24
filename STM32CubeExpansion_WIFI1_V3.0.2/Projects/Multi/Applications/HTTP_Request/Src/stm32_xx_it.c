@@ -41,6 +41,8 @@
 #include "wifi_module.h"
 #include "stm32_spwf_wifi.h"
 #include "wifi_globals.h"
+#include "rtc.h"
+#include "stm32l4xx_hal_rtc.h"
 #include "main.h"
 /** @defgroup STM32xx_IT_Private_Variables
 * @{
@@ -206,11 +208,17 @@ void SysTick_Handler(void)
 {
   HAL_IncTick();
   if(flag==1){
+	  RTC_TimeTypeDef s_time;
+	    RTC_DateTypeDef s_date;
 	    maximum = maxima(databuf,20);
 	    averagee = avg(databuf,20);
 	    minimum = minima(databuf,20);
 	    exception_flag = exception_detection(databuf,20);
       	moving_avg_wrapper(databuf,filtered, 20);
+      	if (HAL_RTC_SetDate(&hrtc, &s_date, RTC_FORMAT_BCD) != 0)
+      	  {
+      	    Error_Handler();
+      	  }
       	flag = 0;
       }
   

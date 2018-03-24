@@ -41,9 +41,12 @@
 #include "wifi_module.h"
 #include "wifi_globals.h"
 #include "wifi_interface.h"
+#include "rtc.h"
+//#include "stm32l4xx_hal_rtc.h"
 #include "stm32l4xx_hal_can.h"
 #include "stm32l4xx_hal_can.c"
-
+//#include "stm32l4xx_hal_rtc.c"
+RTC_HandleTypeDef hrtc;
 /** @defgroup WIFI_Examples
   * @{
   */
@@ -132,8 +135,8 @@ int main(void)
   Set_UartMsgHandle(&UART_MsgHandle);
 #endif  
 
-/*##-1- Configure the CAN peripheral #######################################*/
-CAN_Config();
+/*-------------------------------------CAN BUS Config -----------------------------*/
+  CAN_Config();
 
 /*##-2- Start the Reception process and enable reception interrupt #########*/
  if (HAL_CAN_Receive_IT(&CanHandle, CAN_FIFO0) != HAL_OK)
@@ -142,23 +145,15 @@ CAN_Config();
    printf("\r\nError in Receiving CAN frames");
    Error_Handler();
  }
- //--------------------------------------------------------------------------------
-	    /* Set the data to be tranmitted */
- //  CanHandle.pTxMsg->Data[0] = ubKeyNumber;
- //  CanHandle.pTxMsg->Data[1] = 0xFF;
- /*##-3- Start the Transmission process ###############################*/
-	//   	   if (HAL_CAN_Transmit(&CanHandle, 10) != HAL_OK)
-	//   	   {
-	   		 /* Transmition Error */
-	 //  		 printf("\r\nError in Transmitting CAN frames");
-	 //  		 Error_Handler();
-	 //  	   }
- //----------------------------------------------------------------------------------
+
 /*------------------------------- USER BUTTON Config -------------------------------*/
 
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_EXTI);	//PORTC.13
 
-
+/*--------------------------------RTC Config -------------------------------------*/
+  MX_RTC_Init();
+  //HAL_RTC_Init(&hrtc);
+/*-------------------------------- WiFi Config ---------------------------------------*/
   status = wifi_get_AP_settings();
   if(status!=WiFi_MODULE_SUCCESS)
   {
@@ -503,11 +498,11 @@ void SystemClock_Config(void)
   * @retval None
   */
 void SystemClock_Config(void)
-{
+{/*
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 
-  /* MSI is enabled after System reset, activate PLL with MSI as source */
+  // MSI is enabled after System reset, activate PLL with MSI as source
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
@@ -521,13 +516,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
-    /* Initialization Error */
+    // Initialization Error
     while(1);
   }
 
 
-  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
-     clocks dividers */
+  // Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
+  //   clocks dividers
   RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
@@ -535,10 +530,67 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;  
   if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
   {
-    /* Initialization Error */
+    // Initialization Error
     while(1);
   }
+*/
+	RCC_OscInitTypeDef RCC_OscInitStruct;
+	  RCC_ClkInitTypeDef RCC_ClkInitStruct;
+	  RCC_PeriphCLKInitTypeDef PeriphClkInit;
+
+	  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_LSE;
+	  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+	  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+	  RCC_OscInitStruct.HSICalibrationValue = 16;
+	  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+	  RCC_OscInitStruct.PLL.PLLM = 1;
+	  RCC_OscInitStruct.PLL.PLLN = 10;
+	  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
+	  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+	  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+
+	  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+	                                | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+
+	  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+	  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+	  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+
+	  HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_LSE, RCC_MCODIV_1);
+
+	  HAL_RCCEx_EnableLSCO(RCC_LSCOSOURCE_LSE);
+
+	  __HAL_RCC_PWR_CLK_ENABLE();
+
+	  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+
+	  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
+
+	  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+
+	  /* SysTick_IRQn interrupt configuration */
+	  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
+
 #endif
 
 /**
